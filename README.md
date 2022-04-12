@@ -10,6 +10,6 @@ This is currently hardcoded for the vendor-id and product-id of my keyboard, but
 
 ## Features
 
-### 0x01: Synchronize clock
+### Synchronize clock (pc -> keyboard)
 
 Sends the elapsed millseconds since midnight, which is used in conjunction with `timer_read32()` to calculate the time of day on the keyboard.
