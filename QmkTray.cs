@@ -1,4 +1,5 @@
 ﻿using LilyHid.Commands;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,17 @@ namespace LilyHid
 
         public QmkTray()
         {
+            InitializeCommandsFromConfig();
             ConfigureContextMenu();
+            ConfigureCommunication();
+        }
+
+        private void InitializeCommandsFromConfig()
+        {
+            IConfiguration configuration = new ConfigurationBuilder()
+               .AddJsonFile("appsettings.json", optional: true)
+               .Build();
+            _commands.ForEach(command => command.Configure(configuration.GetSection(command.GetType().Name)));
         }
 
         private void ConfigureContextMenu()
@@ -33,7 +44,10 @@ namespace LilyHid
             exit.Click += (sender, e) => _notifyIcon.Visible = false;
             menu.Items.Add(exit);
             _notifyIcon.ContextMenuStrip = menu;
+        }
 
+        private void ConfigureCommunication()
+        {
             _qmkCommunication.OnConnected += (sender, e) => _notifyIcon.Text = $"{e.DeviceName} connected";
             _qmkCommunication.OnDisconnected += (sender, e) => _notifyIcon.Text = "QMK disconnected";
             _commands.ForEach(command => command.Register(_qmkCommunication));
@@ -44,6 +58,14 @@ namespace LilyHid
 
         public void Dispose()
         {
+            _commands.ForEach(command =>
+            {
+                if (command is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            });
+            _qmkCommunication.Dispose();
             _notifyIcon.Dispose();
         }
     }
