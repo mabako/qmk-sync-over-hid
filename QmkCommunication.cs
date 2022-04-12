@@ -143,13 +143,26 @@ namespace LilyHid
             }
         }
 
-        public void SendCommand(QmkSendCommandId commandId, IEnumerable<byte> payload)
+        public bool SendCommand(QmkSendCommandId commandId, params IEnumerable<byte>[] payload)
         {
+            if (_stream == null)
+                return false;
+
             var buffer = new byte[_device.GetMaxOutputReportLength()];
             buffer[1] = (byte)Mode.SendCommand;
             buffer[2] = (byte)commandId;
-            Array.Copy(payload.ToArray(), 0, buffer, 3, payload.Count());
-            _stream.Write(buffer);
+
+            var mergedPayload = payload.SelectMany(x => x).ToArray();
+            Array.Copy(mergedPayload.ToArray(), 0, buffer, 3, mergedPayload.Length);
+            try
+            {
+                _stream.Write(buffer);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         public void Dispose()
