@@ -17,6 +17,7 @@ namespace LilyHid.Commands
         private readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
         };
         private readonly HttpClient _httpClient = new HttpClient();
         private Configuration _configuration;
@@ -97,7 +98,7 @@ namespace LilyHid.Commands
                     Lights = new List<Keylight> { keylight }
                 },
                 _serializerOptions);
-            var result = await _httpClient.PutAsync(address, new StringContent(json));
+            var result = await _httpClient.PutAsync(address, new StringContent(json, Encoding.UTF8, "application/json"));
         }
 
         public void Dispose()
